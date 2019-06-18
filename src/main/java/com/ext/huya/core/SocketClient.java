@@ -1,6 +1,7 @@
 package com.ext.huya.core;
 
 import com.ext.huya.callback.Callback;
+import com.ext.huya.kit.Func;
 import com.ext.huya.kit.JwtKit;
 import com.ext.huya.kit.KeepAlive;
 import com.ext.huya.kit.WSLink;
@@ -31,8 +32,9 @@ public class SocketClient extends AbstractClient {
     private int port;
     private boolean isSsl = false;
     private Callback callback;
+    private String[] params;
 
-    public SocketClient(long appId, String secret, Callback callback) {
+    public SocketClient(String appId, String secret, Callback callback) {
         this.appId = appId;
         this.secret = secret;
         this.callback = callback;
@@ -44,6 +46,7 @@ public class SocketClient extends AbstractClient {
 
     public Channel start(WSLink link, String roomId) throws URISyntaxException, InterruptedException {
         String requestUrl = getRequestUrl(link, roomId);
+        System.out.println(requestUrl);
         URI uri = new URI(requestUrl);
         initRequest(uri);
 
@@ -124,6 +127,20 @@ public class SocketClient extends AbstractClient {
 
     public boolean isSsl() {
         return isSsl;
+    }
+
+    public String[] getParams() {
+        return params;
+    }
+
+    public SocketClient addFunc(String... func) {
+        this.params = func;
+        return this;
+    }
+
+    public SocketClient addFunc(Func func) {
+
+        return this;
     }
 
     protected void setHost(String host) {

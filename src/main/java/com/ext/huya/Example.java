@@ -3,11 +3,15 @@ package com.ext.huya;
 import com.ext.huya.callback.Callback;
 import com.ext.huya.core.AbstractClient;
 import com.ext.huya.core.SocketClient;
+import com.ext.huya.kit.WSLink;
+
+import java.net.URISyntaxException;
+import java.util.stream.Stream;
 
 public class Example {
 
-    public static void main(String[] args) {
-        AbstractClient abstractClient = new SocketClient(123123, "123", new Callback() {
+    public static void main(String[] args) throws URISyntaxException, InterruptedException {
+        AbstractClient abstractClient = new SocketClient("", "", new Callback() {
             @Override
             public void message(Object msg) {
 
@@ -25,6 +29,12 @@ public class Example {
         });
 
         String token = ((SocketClient) abstractClient).getToken();
+
+        //((SocketClient) abstractClient).start(WSLink.CONNECT_WS  , "518512");
+
+        ((SocketClient) abstractClient).addFunc("geteee" , "getffff");
+
+        Stream.of(((SocketClient) abstractClient).getParams()).forEach(System.out::println);
         System.out.println(token);
     }
 }

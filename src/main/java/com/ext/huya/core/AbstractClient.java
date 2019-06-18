@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 public abstract class AbstractClient {
     protected long iat;
     protected long exp;
-    protected long appId;
+    protected String appId;
     protected String secret;
 
 
@@ -17,4 +17,6 @@ public abstract class AbstractClient {
         });
         return sb.toString();
     }
+
+
 }
