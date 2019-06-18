@@ -1,6 +1,9 @@
 package com.ext.huya.core;
 
+import com.alibaba.fastjson.JSON;
 import com.ext.huya.callback.Callback;
+import com.ext.huya.callback.Event;
+import com.ext.huya.dto.Command;
 import com.ext.huya.kit.Func;
 import com.ext.huya.kit.JwtKit;
 import com.ext.huya.kit.KeepAlive;
@@ -16,6 +19,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import io.netty.handler.ssl.SslContext;
@@ -25,14 +29,16 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import javax.net.ssl.SSLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.stream.Stream;
 
-public class SocketClient extends AbstractClient {
+public class SocketClient extends AbstractClient implements Event {
     private String token;
     private String host;
     private int port;
     private boolean isSsl = false;
     private Callback callback;
     private String[] params;
+    private int off;
 
     public SocketClient(String appId, String secret, Callback callback) {
         this.appId = appId;
@@ -84,6 +90,7 @@ public class SocketClient extends AbstractClient {
 
         //keepalive
         new KeepAlive(ch).start();
+        this.send(ch, new Command(this.params == null ? new String[]{Func.MESSAGE_NOTICE.getFunc()} : this.params));
         return ch;
     }
 
@@ -133,14 +140,37 @@ public class SocketClient extends AbstractClient {
         return params;
     }
 
-    public SocketClient addFunc(String... func) {
-        this.params = func;
+    public SocketClient setFunc(Func... func) {
+        params = new String[4];
+        Stream.iterate(0, i -> i + 1).limit(func.length).forEach(i -> {
+            if (4 <= i) {
+                return;
+            }
+            this.params[i] = func[i].getFunc();
+            this.off = i;
+        });
         return this;
     }
 
+    @Deprecated
     public SocketClient addFunc(Func func) {
+        if (null == this.params) {
+            this.params = new String[4];
+            this.off = 0;
+        }
+        if (this.off == 3) {
+            System.out.println("The parameter array has reached its maximum！");
+            return this;
+        }
+        this.params[this.off + 1] = func.getFunc();
+        this.off++;
 
         return this;
+    }
+
+    public void cleanFunc() {
+        this.params = new String[4];
+
     }
 
     protected void setHost(String host) {
@@ -153,5 +183,15 @@ public class SocketClient extends AbstractClient {
 
     protected void setSsl(boolean ssl) {
         isSsl = ssl;
+    }
+
+    @Override
+    public void send(Channel channel, Object obj) {
+        TextWebSocketFrame frame = new TextWebSocketFrame(JSON.toJSONString(obj));
+        channel.writeAndFlush(frame).addListener(channelFuture -> {
+            if (channelFuture.isSuccess()) {
+                System.out.println("command send =>");
+            }
+        });
     }
 }

@@ -2,9 +2,13 @@ package com.ext.huya.dto;
 
 public class Command {
 
-    private String command = "subscribeNotice";
+    private String command;
     private String[] data;
     private String reqId;
+
+    public Command(String[] data) {
+        this("subscribeNotice", data);
+    }
 
     public Command(String command, String[] data) {
         this.command = command;
@@ -13,7 +17,7 @@ public class Command {
     }
 
     private void insReqId() {
-
+        this.reqId = "123456789";
     }
 
     public String getCommand() {
