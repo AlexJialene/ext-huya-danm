@@ -170,7 +170,6 @@ public class SocketClient extends AbstractClient implements Event {
 
     public void cleanFunc() {
         this.params = new String[4];
-
     }
 
     protected void setHost(String host) {

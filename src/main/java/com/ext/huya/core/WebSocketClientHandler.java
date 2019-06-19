@@ -1,6 +1,13 @@
 package com.ext.huya.core;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.ext.huya.callback.Callback;
+import com.ext.huya.dto.ItemData;
+import com.ext.huya.dto.MessageData;
+import com.ext.huya.dto.ResponseDto;
+import com.ext.huya.dto.VipBannerData;
 import com.ext.huya.kit.WSLink;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -86,8 +93,33 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (null == callback) {
             return;
         }
-        System.out.println(text);
-        //TODO
+        JSONObject jsonObject = JSON.parseObject(text);
+        //ResponseDto responseDto = JSON.parseObject(text, new TypeReference<ResponseDto>() {});
+        if (200 == Integer.valueOf(jsonObject.get("statusCode").toString())) {
+            switch (jsonObject.get("notice").toString()) {
+                case "getVipEnterBannerNotice":
+                    VipBannerData vipBannerData = JSON.parseObject(jsonObject.get("data").toString(), new TypeReference<VipBannerData>() {
+                    });
+                    //System.out.println("会员消息：" + vipBannerData.getUserNick());
+                    callback.vipMessage(vipBannerData);
+                    break;
+                case "getMessageNotice":
+                    MessageData messageData = JSON.parseObject(jsonObject.get("data").toString(), new TypeReference<MessageData>() {
+                    });
+                    //System.out.println("弹幕消息：" + messageData.getSendNick());
+                    callback.message(messageData);
+                    break;
+                case "getSendItemNotice":
+                    ItemData itemData = JSON.parseObject(jsonObject.get("data").toString(), new TypeReference<ItemData>() {
+                    });
+                    //System.out.println("礼物消息：" + itemData.getItemName());
+                    callback.itemMessage(itemData);
+                    break;
+                default:
+                    break;
+            }
+
+        }
     }
 
     @Override
